@@ -1,0 +1,12 @@
+java/.gradle
+java/.idea
+java/build
+java/out
+
+
+**/.idea
+**/.gradle
+**/build
+dsl/**/*.json
+
+.structurizr

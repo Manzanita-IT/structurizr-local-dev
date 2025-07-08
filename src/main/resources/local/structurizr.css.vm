@@ -1,0 +1,10 @@
+#banner {
+  background: #00b38a;
+  color: white;
+  border-top: 10px solid white;
+  padding: 10px;
+}
+
+#banner a {
+  color: white;
+}

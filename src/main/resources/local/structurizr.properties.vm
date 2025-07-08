@@ -1,0 +1,7 @@
+structurizr.url=${structurizrUrl}
+structurizr.apiKey=${structurizrApiKey}
+structurizr.feature.ui.dslEditor=false
+structurizr.maxWorkspaceVersions=5
+structurizr.feature.workspace.archiving=true
+structurizr.feature.workspace.scope=strict
+structurizr.search=none
