@@ -11,7 +11,7 @@ public class Password {
             .filteredBy(CharacterPredicates.ASCII_ALPHA_NUMERALS)
             .get();
 
-    public static String genereer() {
+    public static String generate() {
         return GENERATOR.generate(12);
     }
 

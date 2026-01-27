@@ -12,11 +12,22 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 import lombok.RequiredArgsConstructor;
+import org.manzanita.architecture.structurizr.instance.StructurizrInstance;
 
 @RequiredArgsConstructor
 public class SystemLinkEnricher {
 
     private final Map<String, Workspace> systemenBijNaam;
+
+    public static SystemLinkEnricher from(StructurizrInstance instance) {
+        List<Workspace> systemen = instance.createAdminApiClient()
+                .getWorkspaces(WorkspaceScope.SoftwareSystem);
+        Map<String, Workspace> systemenBijNaam = systemen
+                .stream()
+                .collect(toMap(AbstractWorkspace::getName, Function.<Workspace>identity()));
+
+        return new SystemLinkEnricher(systemenBijNaam);
+    }
 
     public List<Workspace> enrich() {
         return systemenBijNaam.values().stream()
@@ -38,16 +49,6 @@ public class SystemLinkEnricher {
         Optional
                 .ofNullable(systemenBijNaam.get(systeem.getName()))
                 .ifPresent(workspace -> systeem.setUrl(urlTo(workspace)));
-    }
-
-    public static SystemLinkEnricher from(StructurizrInstance instance) {
-        List<Workspace> systemen = instance.createAdminApiClient()
-                .getWorkspaces(WorkspaceScope.SoftwareSystem);
-        Map<String, Workspace> systemenBijNaam = systemen
-                .stream()
-                .collect(toMap(AbstractWorkspace::getName, Function.<Workspace>identity()));
-
-        return new SystemLinkEnricher(systemenBijNaam);
     }
 
 }

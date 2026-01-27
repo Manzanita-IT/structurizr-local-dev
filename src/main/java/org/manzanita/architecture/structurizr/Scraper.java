@@ -30,13 +30,15 @@ class Scraper {
                         return document.getElementsByClass("workspaceThumbnail")
                                 .stream()
                                 .map(e -> e.firstElementChild().attr("href"))
-                                .map(x -> new WorkspacePageObject(URI.create(url).resolve(x + "/json").toString()))
+                                .map(x -> new WorkspacePageObject(
+                                        URI.create(url).resolve(x + "/json").toString()))
                                 .toList();
                     });
         }
     }
 
     record WorkspacePageObject(String url) {
+
         @SneakyThrows
         Workspace readWorkspace() {
             try (CloseableHttpClient httpClient = HttpClients.createDefault()) {

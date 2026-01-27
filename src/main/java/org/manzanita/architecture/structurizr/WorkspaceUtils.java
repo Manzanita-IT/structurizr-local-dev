@@ -21,7 +21,8 @@ class WorkspaceUtils {
         cloneNonExistingRelationship(relationship, model, "");
     }
 
-    static void cloneNonExistingRelationship(Relationship relationship, Model model, String suffix) {
+    static void cloneNonExistingRelationship(Relationship relationship, Model model,
+            String suffix) {
         Optional<Relationship> clonedRelationship = Optional.empty();
 
         if (relationship.getSource() instanceof SoftwareSystem
@@ -60,12 +61,19 @@ class WorkspaceUtils {
     private static Optional<Relationship> cloneRelation(Relationship relationship,
             StaticStructureElement source, StaticStructureElement destination,
             @Nonnull String suffix) {
-        if (source != null && destination != null && !source.hasEfferentRelationshipWith(
-                destination)) {
+        if (noExistingRelationship(relationship, source, destination)) {
             return Optional.ofNullable(
                     source.uses(destination, relationship.getDescription() + suffix, null, null));
         }
         return Optional.empty();
+    }
+
+    private static boolean noExistingRelationship(Relationship relationship,
+            StaticStructureElement source,
+            StaticStructureElement destination) {
+        return source != null && destination != null && source.getEfferentRelationshipsWith(
+                        destination).stream()
+                .noneMatch(r -> r.getDescription().equals(relationship.getDescription()));
     }
 
     static String urlTo(Workspace workspace) {

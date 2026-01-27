@@ -1,8 +1,9 @@
 package org.manzanita.architecture;
 
 import static com.google.common.collect.Sets.newHashSet;
+import static lombok.AccessLevel.PACKAGE;
 
-import org.manzanita.architecture.structurizr.StructurizrInstance;
+import org.manzanita.architecture.structurizr.instance.StructurizrInstance;
 import org.manzanita.architecture.structurizr.SystemLinkEnricher;
 import org.manzanita.architecture.structurizr.SystemRelationshipsEnricher;
 import org.manzanita.architecture.structurizr.WorkspaceReader;
@@ -19,17 +20,27 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 
 @Slf4j
-@RequiredArgsConstructor
+@RequiredArgsConstructor(access = PACKAGE)
 public class Architecture {
 
     private static final String CMD_SYSTEMS = "systems";
 
     private final StructurizrInstance instance;
+    private final WorkspaceReader reader;
+    private final WorkspaceWriter writer;
 
-    private void readAndUpload(Set<String> systemNames) {
+    static Architecture from(StructurizrInstance instance) {
+        return new Architecture(instance, new WorkspaceReader(), WorkspaceWriter.from(instance));
+    }
+
+    public static void main(String[] args) {
+        StructurizrInstance instance = StructurizrInstance.resolve();
+        Architecture.from(instance).readAndUpload(CliOptions.parseSystems(args));
+        instance.openInBrowser();
+    }
+
+    public void readAndUpload(Set<String> systemNames) {
         log.info("Reading and uploading architecture...");
-        WorkspaceReader reader = new WorkspaceReader();
-        WorkspaceWriter writer = WorkspaceWriter.from(instance);
         readAndEnrichSystems(reader, writer, systemNames);
         readAndEnrichLandscape(reader, writer);
         log.info("Architecture uploaded");
@@ -45,22 +56,6 @@ public class Architecture {
 
     private void readAndEnrichLandscape(WorkspaceReader reader, WorkspaceWriter writer) {
         writer.write(reader.readLandscape());
-    }
-
-    public static void main(String[] args) {
-        StructurizrInstance structurizr = StructurizrInstance.resolve();
-        new Architecture(structurizr).readAndUpload(systemNames(args));
-        structurizr.openInBrowser();
-    }
-
-    @SneakyThrows
-    private static Set<String> systemNames(String[] args) {
-        Options options = new Options();
-        options.addOption(Option.builder("s").longOpt(CMD_SYSTEMS).hasArgs().build());
-        CommandLineParser parser = new DefaultParser();
-        CommandLine cmd = parser.parse(options, args);
-        return newHashSet(Optional.ofNullable(cmd.getOptionValues(CMD_SYSTEMS))
-                .orElseGet(() -> new String[0]));
     }
 
 }

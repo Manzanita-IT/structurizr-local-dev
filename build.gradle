@@ -1,6 +1,7 @@
 plugins {
     id 'java'
     id 'application'
+    id 'jacoco'
 }
 
 group 'org.manzanita.architecture'
@@ -11,40 +12,72 @@ repositories {
 }
 
 dependencies {
-    def structurizrVersion = '4.1.0'
+    def structurizrVersion = '5.0.2'
     implementation 'com.structurizr:structurizr-dsl:' + structurizrVersion
     compileOnly 'commons-logging:commons-logging:+'
 
     def slf4jVersion = '2.0.17'
     implementation 'org.slf4j:slf4j-simple:' + slf4jVersion
     implementation 'org.slf4j:jcl-over-slf4j:' + slf4jVersion
-    implementation 'commons-io:commons-io:2.19.0'
-    implementation 'commons-cli:commons-cli:1.9.0'
-    implementation 'com.google.guava:guava:33.4.8-jre'
+    implementation 'commons-io:commons-io:2.21.0'
+    implementation 'commons-cli:commons-cli:1.11.0'
+    implementation 'com.google.guava:guava:33.5.0-jre'
 
-    // Voor lokale Structurizr
-    def tomcatVersion = '11.0.7'
+    // Local Structurizr
+    def tomcatVersion = '11.0.14'
     implementation 'org.apache.tomcat.embed:tomcat-embed-core:' + tomcatVersion
     implementation 'org.apache.tomcat.embed:tomcat-embed-jasper:' + tomcatVersion
+
     implementation 'org.apache.velocity:velocity-engine-core:2.4.1'
-    implementation 'org.springframework.security:spring-security-crypto:6.5.0'
-    implementation 'org.apache.commons:commons-text:1.13.1'
-    implementation 'org.jsoup:jsoup:1.20.1'
+    implementation("org.apache.commons:commons-lang3").version {
+        strictly("3.19.0") // Fix CVE-2025-48924
+    }
+
+    implementation 'org.springframework.security:spring-security-crypto:7.0.2'
+    implementation 'org.apache.commons:commons-text:1.15.0'
+    implementation 'org.jsoup:jsoup:1.22.1'
 
 
-    def junitVersion = '5.12.2'
-    testImplementation 'org.junit.jupiter:junit-jupiter-api:' + junitVersion
-    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:' + junitVersion
+    testImplementation platform('org.junit:junit-bom:6.0.2')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+    // Mockito for unit tests
+    def mockitoVersion = '5.20.0'
+    testImplementation 'org.mockito:mockito-core:' + mockitoVersion
+    testImplementation 'org.mockito:mockito-junit-jupiter:' + mockitoVersion
+
+    // Testcontainers for integration tests
+    def testcontainersVersion = '1.21.3'
+    testImplementation 'org.testcontainers:junit-jupiter:' + testcontainersVersion
+    testImplementation 'org.testcontainers:testcontainers:' + testcontainersVersion
+    testImplementation 'org.testcontainers:nginx:' + testcontainersVersion
 
     // https://projectlombok.org
-
-    def lombokVersion = '1.18.38'
+    def lombokVersion = '1.18.42'
     compileOnly 'org.projectlombok:lombok:' + lombokVersion
     annotationProcessor 'org.projectlombok:lombok:' + lombokVersion
 }
 
 test {
     useJUnitPlatform()
+    finalizedBy jacocoTestReport
+    testLogging.showStandardStreams = true
+}
+
+tasks.withType(Test).configureEach {
+    jacoco {
+        excludes = ['org.apache.velocity.runtime.DeprecatedRuntimeConstants*']
+    }
+}
+
+jacocoTestReport {
+    dependsOn test
+    reports {
+        xml.required = true
+        html.required = true
+        csv.required = false
+    }
 }
 
 mainClassName=mainClass

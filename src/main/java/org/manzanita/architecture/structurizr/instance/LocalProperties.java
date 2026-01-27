@@ -1,4 +1,4 @@
-package org.manzanita.architecture.structurizr.local;
+package org.manzanita.architecture.structurizr.instance;
 
 import static java.lang.Integer.parseInt;
 
@@ -7,7 +7,7 @@ import java.io.InputStream;
 import java.util.Optional;
 import java.util.Properties;
 
-class LocalProperties {
+public class LocalProperties {
 
     private static final Properties properties = new Properties();
 
@@ -20,7 +20,7 @@ class LocalProperties {
         }
     }
 
-    static Optional<String> reference() {
+    public static Optional<String> reference() {
         return Optional.ofNullable(properties.getProperty("reference"));
     }
 

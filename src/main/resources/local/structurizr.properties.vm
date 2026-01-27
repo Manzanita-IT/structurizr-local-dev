@@ -1,4 +1,3 @@
-structurizr.url=${structurizrUrl}
 structurizr.apiKey=${structurizrApiKey}
 structurizr.feature.ui.dslEditor=false
 structurizr.maxWorkspaceVersions=5

@@ -10,28 +10,20 @@ public class Tomcat {
 
     private final org.apache.catalina.startup.Tomcat tomcat;
 
-    @SneakyThrows
-    public void start() {
-        tomcat.start();
-    }
-
-    public String url() {
-        return "http://localhost:" + tomcat.getConnector().getPort();
-    }
-
-    public static Tomcat tomcat(String baseDirectory, int port, File warFile) {
-        var tomcat = create(baseDirectory, port);
+    public static Tomcat tomcat(String baseDirectory, File warFile) {
+        var tomcat = maak(baseDirectory);
         deploy(warFile, tomcat);
         return new Tomcat(tomcat);
     }
 
-    private static org.apache.catalina.startup.Tomcat create(String baseDirectory, int port) {
+    private static org.apache.catalina.startup.Tomcat maak(String baseDirectory) {
         var tomcat = new org.apache.catalina.startup.Tomcat();
         new File(baseDirectory).mkdirs();
         tomcat.setBaseDir(baseDirectory);
+        tomcat.setPort(0);
         Connector connector = new Connector("org.apache.coyote.http11.Http11NioProtocol");
         connector.setThrowOnFailure(true);
-        connector.setPort(port);
+        connector.setPort(0);
         connector.setURIEncoding("UTF-8");
 
         tomcat.getService().addConnector(connector);
@@ -44,5 +36,20 @@ public class Tomcat {
     private static void deploy(File warFile, org.apache.catalina.startup.Tomcat tomcat) {
         new File(tomcat.getServer().getCatalinaBase(), "webapps").mkdirs();
         tomcat.addWebapp("", warFile.getAbsolutePath());
+    }
+
+    @SneakyThrows
+    public void start() {
+        tomcat.start();
+    }
+
+    @SneakyThrows
+    public void stop() {
+        tomcat.stop();
+        tomcat.destroy();
+    }
+
+    public String url() {
+        return "http://localhost:" + tomcat.getConnector().getLocalPort();
     }
 }

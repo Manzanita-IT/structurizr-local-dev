@@ -1,5 +1,6 @@
 package org.manzanita.architecture.structurizr;
 
+import static java.util.Comparator.comparingInt;
 import static org.manzanita.architecture.structurizr.WorkspaceUtils.isPersonOrSystem;
 import static org.manzanita.architecture.structurizr.WorkspaceUtils.cloneNonExistingRelationship;
 import static java.util.function.Function.identity;
@@ -14,11 +15,13 @@ import com.structurizr.Workspace;
 import com.structurizr.configuration.WorkspaceScope;
 import com.structurizr.model.Relationship;
 import com.structurizr.view.SystemContextView;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
+import org.manzanita.architecture.structurizr.instance.StructurizrInstance;
 
 @RequiredArgsConstructor(access = PRIVATE)
 public class SystemRelationshipsEnricher {
@@ -26,34 +29,6 @@ public class SystemRelationshipsEnricher {
     private final Map<String, Workspace> systemsByName;
     private final Multimap<String, Relationship> outgoingRelationsPerSystem;
     private final Multimap<String, Relationship> incomingRelationsPerSystem;
-
-    public List<Workspace> enrich(Set<String> systemNames) {
-        return (systemNames.isEmpty() ?
-                systemsByName :
-                Maps.filterKeys(systemsByName, systemNames::contains))
-                .values()
-                .stream()
-                .map(this::enrich)
-                .toList();
-    }
-
-    private Workspace enrich(Workspace workspace) {
-        List<Relationship> relationships = Streams.concat(
-                relationshipsFromDifferentContexts(workspace, incomingRelationsPerSystem),
-                relationshipsFromDifferentContexts(workspace, outgoingRelationsPerSystem)).toList();
-        relationships.forEach(r -> {
-            WorkspaceUtils.cloneNonExistingRelationship(r, workspace.getModel(), "*");
-        });
-
-        workspace.getViews().getSystemContextViews().forEach(SystemContextView::addDefaultElements);
-        return workspace;
-    }
-
-    private static Stream<Relationship> relationshipsFromDifferentContexts(Workspace workspace,
-            Multimap<String, Relationship> relationships) {
-        return relationships.get(workspace.getName()).stream()
-                .filter(r -> !r.getModel().equals(workspace.getModel()));
-    }
 
     public static SystemRelationshipsEnricher from(List<Workspace> localSystems, StructurizrInstance instance) {
         Map<String, Workspace> allKnownSystems = allKnownSystems(
@@ -87,6 +62,40 @@ public class SystemRelationshipsEnricher {
 
         systemenBijNaam.putAll(remoteSystemen);
         return systemenBijNaam;
+    }
+
+    public List<Workspace> enrich(Set<String> systemNames) {
+        return (systemNames.isEmpty() ?
+                systemsByName :
+                Maps.filterKeys(systemsByName, systemNames::contains))
+                .values()
+                .stream()
+                .map(this::enrich)
+                .toList();
+    }
+
+    private Workspace enrich(Workspace workspace) {
+        Comparator<Relationship> higherWhenTechnologyDefined = comparingInt(r -> {
+            String tech = r.getTechnology();
+            return (tech == null || tech.isBlank()) ? 1 : 0; // technology defined first
+        });
+        List<Relationship> relationships = Streams.concat(
+                relationshipsFromDifferentContexts(workspace, incomingRelationsPerSystem),
+                relationshipsFromDifferentContexts(workspace, outgoingRelationsPerSystem))
+                .sorted(higherWhenTechnologyDefined)
+                .toList();
+        relationships.forEach(r -> {
+            WorkspaceUtils.cloneNonExistingRelationship(r, workspace.getModel(), "*");
+        });
+
+        workspace.getViews().getSystemContextViews().forEach(SystemContextView::addDefaultElements);
+        return workspace;
+    }
+
+    private Stream<Relationship> relationshipsFromDifferentContexts(Workspace workspace,
+            Multimap<String, Relationship> relationships) {
+        return relationships.get(workspace.getName()).stream()
+                .filter(r -> !r.getModel().equals(workspace.getModel()));
     }
 
 }

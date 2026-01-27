@@ -1,0 +1,49 @@
+name: Build / Test / Update Structurizr
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+concurrency:
+  group: ${{ github.head_ref || github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build-test-update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Secret Scan
+        uses: trufflesecurity/trufflehog@main
+
+      - name: Build and Test
+        run: ./gradlew build test --stacktrace
+        shell: bash
+
+      - name: Test Report
+        if: success() || failure()
+        uses: dorny/test-reporter@v2
+        with:
+          name: Unit Tests
+          path: '**/build/test-results/test/*.xml'
+          reporter: java-junit
+
+#      - name: Set Structurizr Environment Variables
+#        if: ${{ github.ref == 'refs/heads/main' }}
+#        run: |
+#          echo "STRUCTURIZR_API_KEY=${{ secrets.STRUCTURIZR_API_KEY }}" >> "$GITHUB_ENV"
+#          echo "STRUCTURIZR_URL=${{ vars.STRUCTURIZR_URL }}" >> "$GITHUB_ENV"
+#        shell: bash
+#
+#      - name: Update Structurizr
+#        if: ${{ github.ref == 'refs/heads/main' }}
+#        run: ./gradlew run --stacktrace
+#        shell: bash

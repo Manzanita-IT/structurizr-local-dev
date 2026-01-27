@@ -7,6 +7,7 @@ import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.manzanita.architecture.structurizr.instance.StructurizrInstance;
 
 /**
  * This class allows cloning workspaces between Structurizr instances in an unauthenticated way.
@@ -36,6 +37,7 @@ public class WorkspaceCloner {
     }
 
     private Stream<Workspace> readWorkspacesFrom(String sourceUrl) {
-        return new Scraper(sourceUrl).workspacePages().stream().map(WorkspacePageObject::readWorkspace);
+        return new Scraper(sourceUrl).workspacePages().stream().
+                map(WorkspacePageObject::readWorkspace);
     }
 }

@@ -7,12 +7,18 @@ import com.structurizr.api.WorkspaceMetadata;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
+import org.manzanita.architecture.structurizr.instance.StructurizrInstance;
 
 @RequiredArgsConstructor(access = PRIVATE)
 public class WorkspaceWriter {
 
     private final StructurizrInstance instance;
     private final AdminApiClient adminApiClient;
+
+    public static WorkspaceWriter from(StructurizrInstance instance) {
+        AdminApiClient adminApiClient = instance.createAdminApiClient();
+        return new WorkspaceWriter(instance, adminApiClient);
+    }
 
     public void write(Landscape landscape) {
         write(landscape.getWorkspace());
@@ -27,10 +33,5 @@ public class WorkspaceWriter {
 
     public void write(List<Workspace> workspaces) {
         workspaces.forEach(this::write);
-    }
-
-    public static WorkspaceWriter from(StructurizrInstance instance) {
-        AdminApiClient adminApiClient = instance.createAdminApiClient();
-        return new WorkspaceWriter(instance, adminApiClient);
     }
 }

@@ -13,11 +13,16 @@ import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
+import org.manzanita.architecture.structurizr.instance.StructurizrInstance;
 
 @RequiredArgsConstructor(access = PRIVATE)
 public class LandscapeEnricher {
 
     private final AdminApiClient adminApiClient;
+
+    public static LandscapeEnricher from(StructurizrInstance instance) {
+        return new LandscapeEnricher(instance.createAdminApiClient());
+    }
 
     @SneakyThrows
     public Landscape enrich(Landscape landscape) {
@@ -73,7 +78,4 @@ public class LandscapeEnricher {
         view.addAllElements();
     }
 
-    public static LandscapeEnricher from(StructurizrInstance instance) {
-        return new LandscapeEnricher(instance.createAdminApiClient());
-    }
 }

@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
+import org.manzanita.architecture.structurizr.instance.StructurizrInstance;
 
 @RequiredArgsConstructor
 public class AdminApiClient {
@@ -44,10 +45,6 @@ public class AdminApiClient {
                 .toList();
     }
 
-    public void setAgent(String agent) {
-        delegate.setAgent(agent);
-    }
-
     @SneakyThrows
     public void deleteWorkspace(int workspaceId) {
         delegate.deleteWorkspace(workspaceId);
@@ -60,6 +57,10 @@ public class AdminApiClient {
 
     public String getAgent() {
         return delegate.getAgent();
+    }
+
+    public void setAgent(String agent) {
+        delegate.setAgent(agent);
     }
 
     public WorkspaceMetadata getOrCreateWorkspace(Workspace workspace) {
