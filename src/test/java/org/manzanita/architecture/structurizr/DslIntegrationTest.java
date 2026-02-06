@@ -1,13 +1,20 @@
 package org.manzanita.architecture.structurizr;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.google.common.base.Joiner;
+import com.structurizr.Workspace;
+import com.structurizr.model.SoftwareSystem;
 import java.io.File;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.junit.Ignore;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -78,7 +85,36 @@ class DslIntegrationTest {
 
     @Test
     void dslIsValid() {
-        new WorkspaceCloner(LocalProperties.reference().get()).cloneTo(instance);
-        // No Exception
+        new WorkspaceCloner(LocalProperties.reference()).cloneTo(instance);
+
+        assertEachWorkspaceNameMatchesSoftwareSystemName();
+    }
+
+    private void assertEachWorkspaceNameMatchesSoftwareSystemName() {
+        Set<String> softwareSystemNames = softwareSystemNames();
+        
+        List<String> unexpected = readWorkspaces()
+                .stream()
+                .map(Workspace::getName)
+                .filter(name -> !softwareSystemNames.contains(name))
+                .toList();
+
+        assertEquals(0, unexpected.size(),
+                "Workspace and SoftwareSystem names are not corresponding: " + Joiner.on(", ")
+                        .join(unexpected));
+    }
+
+    private Set<String> softwareSystemNames() {
+        return new WorkspaceReader().readLandscape().getModel()
+                .getSoftwareSystems().stream()
+                .map(SoftwareSystem::getName)
+                .collect(Collectors.toSet());
+    }
+
+    private List<Workspace> readWorkspaces() {
+        return new WorkspaceReader().readSystems(Set.of()).stream()
+                // Ignore the landscape workspace, because that one has no corresponding Software System
+                .filter(w -> !"_Systemlandscape_".equals(w.getName()))
+                .toList();
     }
 }
